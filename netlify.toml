@@ -1,8 +1,9 @@
 [build]
   command = "npm run build"
-  publish = "build"
+  publish = "dist"
+  functions = "netlify/functions"
 
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
+  from = "/auth/callback"
+  to = "/"
   status = 200 

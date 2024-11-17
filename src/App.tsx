@@ -7,9 +7,11 @@ import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { createTokenAuth } from '@octokit/auth-token';
 import { Octokit } from '@octokit/rest';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 function AppContent() {
   const { theme } = useTheme();
+  const { isAuthenticated, login, accessToken, error: authError } = useAuth();
   const [keyword, setKeyword] = useState('');
   const [location, setLocation] = useState('');
   const [users, setUsers] = useState<GitHubUser[]>([]);
@@ -25,9 +27,9 @@ function AppContent() {
     setError(null);
     
     try {
-      const token = import.meta.env.VITE_GITHUB_TOKEN;
+      const token = accessToken || import.meta.env.VITE_GITHUB_TOKEN;
       if (!token) {
-        throw new Error('GitHub token not configured. Please check environment variables.');
+        throw new Error('Authentication required. Please sign in with GitHub.');
       }
 
       const octokit = new Octokit({ auth: token });
@@ -124,11 +126,36 @@ function AppContent() {
     searchUsers(page);
   };
 
+  const renderAuthButton = () => {
+    return (
+      <div className="flex flex-col items-end gap-2">
+        {authError && (
+          <div className="text-red-500 text-sm">
+            {authError}
+          </div>
+        )}
+        {!isAuthenticated && (
+          <button
+            onClick={login}
+            className={`px-4 py-2 rounded-md ${
+              theme === 'dark' 
+                ? 'bg-white text-black hover:bg-gray-200' 
+                : 'bg-black text-white hover:bg-gray-800'
+            }`}
+          >
+            Sign in with GitHub
+          </button>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className={`min-h-screen flex flex-col ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
       <div className="container mx-auto px-4 py-8 flex-grow max-w-5xl">
-        <div className="flex justify-end mb-8">
+        <div className="flex justify-between mb-8">
           <ThemeSwitcher />
+          {renderAuthButton()}
         </div>
         
         <div className="flex flex-col items-center">
@@ -204,7 +231,9 @@ function AppContent() {
 function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </ThemeProvider>
   );
 }
