@@ -1,24 +1,38 @@
-# Your Project Name
+# GitHub Bio Search
 
-Brief description of your project.
+Search GitHub users by their bio descriptions. Built with React, TypeScript, and Tailwind CSS.
 
-## Getting Started
+## Setup
 
 1. Clone the repository
-2. Copy `.env.example` to `.env` and fill in your values
-3. Install dependencies:
+2. Install dependencies:
    ```bash
    npm install
    ```
-4. Run the development server:
-   ```bash
-   npm start
+
+3. Create a `.env.local` file with your GitHub credentials:
+   ```
+   VITE_GITHUB_TOKEN=your_github_token
+   VITE_GITHUB_CLIENT_ID=your_client_id
    ```
 
-## Deployment
+4. For development:
+   ```bash
+   netlify dev
+   ```
 
-This project is configured for deployment on Netlify.
+## Environment Variables
 
-1. Push your code to GitHub
-2. Connect your GitHub repository to Netlify
-3. Configure your environment variables in Netlify's dashboard
+### Local Development
+- `VITE_GITHUB_TOKEN`: GitHub Personal Access Token
+- `VITE_GITHUB_CLIENT_ID`: GitHub OAuth App Client ID
+
+### Netlify Deployment
+Set these in Netlify environment variables:
+- `GITHUB_CLIENT_ID`: OAuth App Client ID
+- `GITHUB_CLIENT_SECRET`: OAuth App Client Secret
+- `VITE_GITHUB_CLIENT_ID`: Same as GITHUB_CLIENT_ID
+
+## License
+
+MIT
