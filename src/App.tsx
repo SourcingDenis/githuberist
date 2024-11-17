@@ -18,70 +18,6 @@ function AppContent() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const generateJWT = async () => {
-    try {
-      const privateKey = import.meta.env.VITE_GITHUB_APP_PRIVATE_KEY
-        .replace(/\\n/g, '\n');
-
-      const header = {
-        alg: 'RS256',
-        typ: 'JWT'
-      };
-
-      const now = Math.floor(Date.now() / 1000);
-      const payload = {
-        iat: now,
-        exp: now + (10 * 60),
-        iss: import.meta.env.VITE_GITHUB_APP_ID
-      };
-
-      return import.meta.env.VITE_GITHUB_TOKEN;
-    } catch (error) {
-      console.error('Error generating JWT:', error);
-      return null;
-    }
-  };
-
-  const getGitHubAuth = async () => {
-    try {
-      const token = await generateJWT();
-      if (!token) throw new Error('Failed to generate token');
-
-      return token;
-    } catch (error) {
-      console.error('Error getting token:', error);
-      return null;
-    }
-  };
-
-  const getMostUsedLanguage = async (username: string, token: string) => {
-    try {
-      const octokit = new Octokit({ auth: token });
-      
-      const { data: repos } = await octokit.repos.listForUser({
-        username,
-        sort: 'pushed',
-        per_page: 10
-      });
-      
-      const languages = repos.map(repo => repo.language).filter(Boolean);
-      
-      if (languages.length === 0) return null;
-      
-      const languageCounts = languages.reduce<Record<string, number>>((acc, lang) => {
-        if (lang) {
-          acc[lang] = (acc[lang] || 0) + 1;
-        }
-        return acc;
-      }, {});
-      
-      return Object.entries(languageCounts)
-        .sort(([, a], [, b]) => b - a)[0][0];
-    } catch {
-      return null;
-    }
-  };
-
   const searchUsers = async (page = 1) => {
     if (!keyword.trim()) return;
     
@@ -89,9 +25,9 @@ function AppContent() {
     setError(null);
     
     try {
-      const token = await getGitHubAuth();
+      const token = import.meta.env.VITE_GITHUB_TOKEN;
       if (!token) {
-        throw new Error('Failed to authenticate with GitHub');
+        throw new Error('GitHub token not configured. Please check environment variables.');
       }
 
       const octokit = new Octokit({ auth: token });
@@ -139,15 +75,48 @@ function AppContent() {
         })
       );
 
-      setUsers(detailedUsers);
+      setUsers(detailedUsers as GitHubUser[]);
       setTotalCount(Math.min(searchResponse.data.total_count, 1000));
       setCurrentPage(page);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while searching.');
+      console.error('Search error:', err);
+      setError(
+        err instanceof Error 
+          ? `Error: ${err.message}` 
+          : 'An error occurred while searching. Please try again later.'
+      );
       setUsers([]);
       setTotalCount(0);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getMostUsedLanguage = async (username: string, token: string) => {
+    try {
+      const octokit = new Octokit({ auth: token });
+      
+      const { data: repos } = await octokit.repos.listForUser({
+        username,
+        sort: 'pushed',
+        per_page: 10
+      });
+      
+      const languages = repos.map(repo => repo.language).filter(Boolean);
+      
+      if (languages.length === 0) return null;
+      
+      const languageCounts = languages.reduce<Record<string, number>>((acc, lang) => {
+        if (lang) {
+          acc[lang] = (acc[lang] || 0) + 1;
+        }
+        return acc;
+      }, {});
+      
+      return Object.entries(languageCounts)
+        .sort(([, a], [, b]) => b - a)[0][0];
+    } catch {
+      return null;
     }
   };
 
