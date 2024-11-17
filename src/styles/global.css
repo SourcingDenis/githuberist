@@ -1,0 +1,37 @@
+:root[data-theme="light"] {
+  --background-color: #f9fafb;
+  --text-color: #111827;
+  --text-secondary: #4b5563;
+  --primary-color: #007bff;
+  --border-color: #e5e7eb;
+}
+
+:root[data-theme="dark"] {
+  --background-color: #111827;
+  --text-color: #ffffff;
+  --text-secondary: #9ca3af;
+  --primary-color: #4dabf7;
+  --border-color: #374151;
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-pulse {
+  animation: heartbeat 1.5s ease infinite;
+} 

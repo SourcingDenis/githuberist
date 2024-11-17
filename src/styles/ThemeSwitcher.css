@@ -1,0 +1,21 @@
+.theme-switcher {
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-color);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-switcher:hover {
+  background-color: var(--border-color);
+}
+
+.theme-switcher:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+} 
