@@ -8,7 +8,13 @@ interface AuthContextType {
   error: string | null;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const githubOAuthConfig = {
+  clientId: import.meta.env.VITE_GITHUB_CLIENT_ID,
+  clientSecret: import.meta.env.VITE_GITHUB_CLIENT_SECRET,
+  redirectUri: import.meta.env.VITE_GITHUB_REDIRECT_URI,
+};
+
+export const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [accessToken, setAccessToken] = useState<string | null>(() => {
@@ -69,6 +75,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     setAccessToken(null);
     localStorage.removeItem('github_access_token');
+  };
+
+  const handleGithubSignIn = async () => {
+    try {
+      const authUrl = `https://github.com/login/oauth/authorize?client_id=${
+        githubOAuthConfig.clientId
+      }&redirect_uri=${encodeURIComponent(githubOAuthConfig.redirectUri)}`;
+      
+      window.location.href = authUrl;
+    } catch (error) {
+      console.error('GitHub authentication error:', error);
+      // Handle error appropriately
+    }
+  };
+
+  const handleOAuthCallback = async (code: string) => {
+    try {
+      // Exchange code for access token
+      const response = await fetch('https://github.com/login/oauth/access_token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          client_id: githubOAuthConfig.clientId,
+          client_secret: githubOAuthConfig.clientSecret,
+          code,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error_description || 'Authentication failed');
+      }
+
+      // Store the access token securely
+      const { access_token } = data;
+      // ... handle successful authentication
+    } catch (error) {
+      console.error('Error exchanging code for token:', error);
+      // Handle error appropriately
+    }
   };
 
   return (
