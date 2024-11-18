@@ -169,7 +169,7 @@ function AppContent() {
               </h1>
             </div>
             <p className={`text-lg ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-              Find GitHub users by searching their bio descriptions
+              Find GitHub users by searching their bio descriptions & location
             </p>
           </div>
 
