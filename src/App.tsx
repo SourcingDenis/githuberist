@@ -57,7 +57,7 @@ function AppContent() {
       const searchResponse = await octokit.search.users({
         q: endpoint,
         page,
-        per_page: 10,
+        per_page: 12,
         ...(sort === 'followers' || sort === 'repositories' ? { sort, order: 'desc' } : {}),
       });
 
@@ -170,7 +170,7 @@ function AppContent() {
           <ThemeSwitcher />
         </div>
 
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center min-h-[calc(100vh-16rem)] justify-between">
           <div className="text-center mb-12">
             <div className="flex items-center justify-center space-x-3 mb-4">
               <Github className={`w-10 h-10 ${theme === 'dark' ? 'text-white' : 'text-black'}`} />
@@ -198,7 +198,7 @@ function AppContent() {
                 onSearch={() => searchUsers(keyword, 1)}
               />
             ) : (
-              <div className="mt-6 text-center">
+              <div className="flex flex-col items-center justify-center">
                 <div className="relative group inline-block">
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-gradient-xy"></div>
                   <button
