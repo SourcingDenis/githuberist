@@ -59,7 +59,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     </AuthContext.Provider>
   );
 }
-
 useEffect(() => {
   const handleCallback = async () => {
     const code = new URLSearchParams(window.location.search).get('code');
@@ -78,24 +77,14 @@ useEffect(() => {
         }
 
         const data = await response.json();
-
         if (data.access_token) {
           localStorage.setItem('github_access_token', data.access_token);
 
-          // Fetch user information
-          const userResponse = await fetch('https://api.github.com/user', {
-            headers: {
-              Authorization: `Bearer ${data.access_token}`,
-            },
-          });
-
-          const user = await userResponse.json();
-          console.log('Authenticated user:', user);
-
-          // Redirect to the home screen after successful authentication
-          window.history.replaceState({}, document.title, '/'); // Remove `code` from the URL
-        } else if (data.error) {
-          console.error('Authentication error:', data.error_description || 'Authentication failed');
+          // Remove the code from the URL and redirect to home
+          window.history.replaceState({}, document.title, '/');
+          window.location.href = '/'; // Fallback
+        } else {
+          console.error('Authentication failed: No access token returned');
         }
       } catch (error) {
         console.error('Authentication error:', error);
