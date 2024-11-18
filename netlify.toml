@@ -3,11 +3,7 @@
   publish = "dist"
   functions = "netlify/functions"
 
-[[redirects]]
-  from = "/auth/callback"
-  to = "/.netlify/functions/auth" # Points to your serverless function
-  status = 200
-
+# Redirect all unmatched routes to index.html (for React client-side routing)
 [[redirects]]
   from = "/*"
   to = "/index.html"
