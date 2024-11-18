@@ -9,6 +9,12 @@ import { Octokit } from '@octokit/rest';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { motion } from 'framer-motion';
 
+const stats = [
+  { name: 'Pull Requests', value: '4.2B+' },
+  { name: 'Programming Languages', value: '50+' },
+  { name: 'Developers', value: '5M+' },
+];
+
 function AppContent() {
   const { theme } = useTheme();
   const { isAuthenticated, login, accessToken, error: authError } = useAuth();
@@ -226,13 +232,9 @@ function AppContent() {
               </p>
 
               <div className="grid grid-cols-3 gap-4 mt-12 max-w-2xl mx-auto mb-12">
-                {[
-                  { label: 'Active Developers', value: '40M+' },
-                  { label: 'Repositories', value: '200M+' },
-                  { label: 'Programming Languages', value: '370+' }
-                ].map((stat, index) => (
+                {stats.map((stat, index) => (
                   <div
-                    key={stat.label}
+                    key={stat.name}
                     className={`p-4 rounded-lg ${
                       theme === 'dark' 
                         ? 'bg-gray-900/50 hover:bg-gray-800/50' 
@@ -249,7 +251,7 @@ function AppContent() {
                     <div className={`text-sm ${
                       theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                     }`}>
-                      {stat.label}
+                      {stat.name}
                     </div>
                   </div>
                 ))}
