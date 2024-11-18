@@ -26,6 +26,8 @@ interface UserListProps {
   onSortChange: (sort: SortOption) => void;
 }
 
+const ITEMS_PER_PAGE = 12;
+
 function UserList({ 
   users, 
   totalCount, 
@@ -38,7 +40,7 @@ function UserList({
   onSortChange 
 }: UserListProps) {
   const { theme } = useTheme();
-  const totalPages = Math.ceil(Math.min(totalCount, 1000) / 10);
+  const totalPages = Math.ceil(Math.min(totalCount, 1000) / ITEMS_PER_PAGE);
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -189,7 +191,7 @@ function UserList({
             {totalCount.toLocaleString()} {totalCount === 1 ? 'user' : 'users'} found
           </span>
           <span className="text-sm ml-4">
-            Showing {((currentPage - 1) * 10) + 1}-{Math.min(currentPage * 10, totalCount)} of {totalCount.toLocaleString()}
+            Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} of {totalCount.toLocaleString()}
           </span>
         </div>
 
