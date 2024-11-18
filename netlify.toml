@@ -1,9 +1,14 @@
 [build]
   command = "npm run build"
-  publish = "dist" # Adjust if needed
+  publish = "dist"
   functions = "netlify/functions"
 
 [[redirects]]
   from = "/auth/callback"
-  to = "githuberist.netlify.app/auth/callback" # Or the correct path in your app
+  to = "/.netlify/functions/auth" # Points to your serverless function
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
   status = 200
