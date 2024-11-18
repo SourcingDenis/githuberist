@@ -10,8 +10,7 @@ interface AuthContextType {
 
 const githubOAuthConfig = {
   clientId: import.meta.env.VITE_GITHUB_CLIENT_ID,
-  clientSecret: import.meta.env.VITE_GITHUB_CLIENT_SECRET,
-  redirectUri: import.meta.env.VITE_GITHUB_REDIRECT_URI,
+  redirectUri: `${window.location.origin}/auth/callback`,
 };
 
 export const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -36,9 +35,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             },
             body: JSON.stringify({ code }),
           });
-          
+
           if (!response.ok) {
-            throw new Error('Failed to authenticate with GitHub');
+            const errorMessage = await response.text();
+            throw new Error(`Failed to authenticate with GitHub: ${errorMessage}`);
           }
 
           const data = await response.json();
@@ -60,65 +60,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = () => {
-    const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
+    const clientId = githubOAuthConfig.clientId;
     if (!clientId) {
       setError('GitHub Client ID not configured');
       return;
     }
 
-    const redirectUri = `${window.location.origin}/auth/callback`;
     const scope = 'read:user';
-    
-    window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`;
+    window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+      githubOAuthConfig.redirectUri
+    )}&scope=${scope}`;
   };
 
   const logout = () => {
     setAccessToken(null);
     localStorage.removeItem('github_access_token');
-  };
-
-  const handleGithubSignIn = async () => {
-    try {
-      const authUrl = `https://github.com/login/oauth/authorize?client_id=${
-        githubOAuthConfig.clientId
-      }&redirect_uri=${encodeURIComponent(githubOAuthConfig.redirectUri)}`;
-      
-      window.location.href = authUrl;
-    } catch (error) {
-      console.error('GitHub authentication error:', error);
-      // Handle error appropriately
-    }
-  };
-
-  const handleOAuthCallback = async (code: string) => {
-    try {
-      // Exchange code for access token
-      const response = await fetch('https://github.com/login/oauth/access_token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify({
-          client_id: githubOAuthConfig.clientId,
-          client_secret: githubOAuthConfig.clientSecret,
-          code,
-        }),
-      });
-
-      const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(data.error_description || 'Authentication failed');
-      }
-
-      // Store the access token securely
-      const { access_token } = data;
-      // ... handle successful authentication
-    } catch (error) {
-      console.error('Error exchanging code for token:', error);
-      // Handle error appropriately
-    }
   };
 
   return (
@@ -134,4 +90,4 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-} 
+}
