@@ -276,11 +276,25 @@ function AppContent() {
             // Show only search interface for authenticated users
             <>
               <div className="text-center mb-8">
-                <div className="flex items-center justify-center space-x-3 mb-4">
-                  <Github className={`w-8 h-8 ${theme === 'dark' ? 'text-white' : 'text-black'}`} />
-                  <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-black'} tracking-tight`}>
+                <div className="flex items-center justify-center space-x-3 mb-4 group">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-sm opacity-75 group-hover:opacity-100 transition-opacity duration-300" />
+                    <Github 
+                      className={`w-12 h-12 relative ${
+                        theme === 'dark' ? 'text-white' : 'text-black'
+                      } transform group-hover:scale-110 transition-transform duration-300`} 
+                    />
+                  </div>
+                  <motion.h1
+                    className={`text-4xl font-bold ${
+                      theme === 'dark' ? 'text-white' : 'text-black'
+                    } tracking-tight relative`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
                     DevFinder
-                  </h1>
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-ping" />
+                  </motion.h1>
                 </div>
               </div>
               
