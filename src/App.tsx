@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Github, Heart } from 'lucide-react';
 import SearchBar from './components/SearchBar';
 import UserList from './components/UserList';
-import { GitHubUser, SearchResults } from './types/github';
+import { GitHubUser } from './types/github';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { Octokit } from '@octokit/rest';
@@ -19,10 +19,11 @@ function AppContent() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Redirect user to home screen after signing in
+  // Redirect user to the home screen after logging in
   useEffect(() => {
     if (isAuthenticated) {
-      window.history.replaceState({}, document.title, '/'); // Remove code from URL
+      // Remove the OAuth code from the URL
+      window.history.replaceState({}, document.title, '/');
     }
   }, [isAuthenticated]);
 
@@ -131,25 +132,23 @@ function AppContent() {
     searchUsers(page);
   };
 
-  const renderAuthButton = () => {
-    return (
-      <div className="flex flex-col items-end gap-2">
-        {authError && <div className="text-red-500 text-sm">{authError}</div>}
-        {!isAuthenticated && (
-          <button
-            onClick={login}
-            className={`px-4 py-2 rounded-md ${
-              theme === 'dark'
-                ? 'bg-white text-black hover:bg-gray-200'
-                : 'bg-black text-white hover:bg-gray-800'
-            }`}
-          >
-            Sign in with GitHub
-          </button>
-        )}
-      </div>
-    );
-  };
+  const renderAuthButton = () => (
+    <div className="flex flex-col items-end gap-2">
+      {authError && <div className="text-red-500 text-sm">{authError}</div>}
+      {!isAuthenticated && (
+        <button
+          onClick={login}
+          className={`px-4 py-2 rounded-md ${
+            theme === 'dark'
+              ? 'bg-white text-black hover:bg-gray-200'
+              : 'bg-black text-white hover:bg-gray-800'
+          }`}
+        >
+          Sign in with GitHub
+        </button>
+      )}
+    </div>
+  );
 
   return (
     <div className={`min-h-screen flex flex-col ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
@@ -166,7 +165,7 @@ function AppContent() {
               <h1
                 className={`text-4xl font-bold ${theme === 'dark' ? 'text-white' : 'text-black'} tracking-tight`}
               >
-                GitHub Bio Search
+                GitHub User Search
               </h1>
             </div>
             <p className={`text-lg ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
