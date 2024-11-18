@@ -7,6 +7,7 @@ import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { Octokit } from '@octokit/rest';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { motion } from 'framer-motion';
 
 function AppContent() {
   const { theme } = useTheme();
@@ -19,6 +20,7 @@ function AppContent() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('');
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
   // Redirect user to the home screen after logging in
   useEffect(() => {
