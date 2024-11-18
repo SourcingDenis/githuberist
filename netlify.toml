@@ -5,5 +5,5 @@
 
 [[redirects]]
   from = "/auth/callback"
-  to = "https://githuberist.netlify.app/auth/callback" # Or the correct path in your app
+  to = "githuberist.netlify.app/auth/callback" # Or the correct path in your app
   status = 200
