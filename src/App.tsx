@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Github, Heart } from 'lucide-react';
 import SearchBar from './components/SearchBar';
 import UserList from './components/UserList';
 import { GitHubUser, SearchResults } from './types/github';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
-import { createTokenAuth } from '@octokit/auth-token';
 import { Octokit } from '@octokit/rest';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
@@ -20,12 +19,19 @@ function AppContent() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Redirect user to home screen after signing in
+  useEffect(() => {
+    if (isAuthenticated) {
+      window.history.replaceState({}, document.title, '/'); // Remove code from URL
+    }
+  }, [isAuthenticated]);
+
   const searchUsers = async (page = 1) => {
     if (!keyword.trim()) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       const token = accessToken || import.meta.env.VITE_GITHUB_TOKEN;
       if (!token) {
@@ -38,9 +44,9 @@ function AppContent() {
       const searchResponse = await octokit.search.users({
         q: query,
         page,
-        per_page: 10
+        per_page: 10,
       });
-      
+
       if (searchResponse.data.items.length === 0) {
         setUsers([]);
         setTotalCount(0);
@@ -53,12 +59,12 @@ function AppContent() {
           try {
             const [userData, mostUsedLanguage] = await Promise.all([
               octokit.users.getByUsername({ username: user.login }),
-              getMostUsedLanguage(user.login, token)
+              getMostUsedLanguage(user.login, token),
             ]);
-            
+
             return {
               ...userData.data,
-              most_used_language: mostUsedLanguage
+              most_used_language: mostUsedLanguage,
             };
           } catch (err) {
             return {
@@ -71,7 +77,7 @@ function AppContent() {
               followers: 0,
               following: 0,
               company: null,
-              most_used_language: null
+              most_used_language: null,
             };
           }
         })
@@ -83,8 +89,8 @@ function AppContent() {
     } catch (err) {
       console.error('Search error:', err);
       setError(
-        err instanceof Error 
-          ? `Error: ${err.message}` 
+        err instanceof Error
+          ? `Error: ${err.message}`
           : 'An error occurred while searching. Please try again later.'
       );
       setUsers([]);
@@ -97,26 +103,25 @@ function AppContent() {
   const getMostUsedLanguage = async (username: string, token: string) => {
     try {
       const octokit = new Octokit({ auth: token });
-      
+
       const { data: repos } = await octokit.repos.listForUser({
         username,
         sort: 'pushed',
-        per_page: 10
+        per_page: 10,
       });
-      
-      const languages = repos.map(repo => repo.language).filter(Boolean);
-      
+
+      const languages = repos.map((repo) => repo.language).filter(Boolean);
+
       if (languages.length === 0) return null;
-      
+
       const languageCounts = languages.reduce<Record<string, number>>((acc, lang) => {
         if (lang) {
           acc[lang] = (acc[lang] || 0) + 1;
         }
         return acc;
       }, {});
-      
-      return Object.entries(languageCounts)
-        .sort(([, a], [, b]) => b - a)[0][0];
+
+      return Object.entries(languageCounts).sort(([, a], [, b]) => b - a)[0][0];
     } catch {
       return null;
     }
@@ -129,17 +134,13 @@ function AppContent() {
   const renderAuthButton = () => {
     return (
       <div className="flex flex-col items-end gap-2">
-        {authError && (
-          <div className="text-red-500 text-sm">
-            {authError}
-          </div>
-        )}
+        {authError && <div className="text-red-500 text-sm">{authError}</div>}
         {!isAuthenticated && (
           <button
             onClick={login}
             className={`px-4 py-2 rounded-md ${
-              theme === 'dark' 
-                ? 'bg-white text-black hover:bg-gray-200' 
+              theme === 'dark'
+                ? 'bg-white text-black hover:bg-gray-200'
                 : 'bg-black text-white hover:bg-gray-800'
             }`}
           >
@@ -157,12 +158,14 @@ function AppContent() {
           <ThemeSwitcher />
           {renderAuthButton()}
         </div>
-        
+
         <div className="flex flex-col items-center">
           <div className="text-center mb-12">
             <div className="flex items-center justify-center space-x-3 mb-4">
               <Github className={`w-10 h-10 ${theme === 'dark' ? 'text-white' : 'text-black'}`} />
-              <h1 className={`text-4xl font-bold ${theme === 'dark' ? 'text-white' : 'text-black'} tracking-tight`}>
+              <h1
+                className={`text-4xl font-bold ${theme === 'dark' ? 'text-white' : 'text-black'} tracking-tight`}
+              >
                 GitHub Bio Search
               </h1>
             </div>
@@ -172,7 +175,7 @@ function AppContent() {
           </div>
 
           <div className="w-full max-w-2xl">
-            <SearchBar 
+            <SearchBar
               keyword={keyword}
               location={location}
               setKeyword={setKeyword}
@@ -182,7 +185,7 @@ function AppContent() {
           </div>
 
           <div className="w-full mt-8">
-            <UserList 
+            <UserList
               users={users}
               totalCount={totalCount}
               currentPage={currentPage}
@@ -194,26 +197,27 @@ function AppContent() {
           </div>
         </div>
       </div>
-      
-      <footer className={`py-6 ${theme === 'dark' ? 'bg-black border-gray-800' : 'bg-white border-gray-100'} border-t`}>
+
+      <footer
+        className={`py-6 ${theme === 'dark' ? 'bg-black border-gray-800' : 'bg-white border-gray-100'} border-t`}
+      >
         <div className="container mx-auto px-4 text-center max-w-5xl">
-          <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} flex items-center justify-center gap-2`}>
+          <p
+            className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} flex items-center justify-center gap-2`}
+          >
             Built with{' '}
-            <a 
+            <a
               href="https://cursor.sh"
               target="_blank"
               rel="noopener noreferrer"
               className={`hover:text-${theme === 'dark' ? 'white' : 'black'} transition-colors`}
             >
               Cursor
-            </a>
-            {' & '}
-            <Heart 
-              className="w-4 h-4 text-red-500 inline-block animate-pulse fill-current" 
-              aria-label="love"
-            />
-            {' by '}
-            <a 
+            </a>{' '}
+            &{' '}
+            <Heart className="w-4 h-4 text-red-500 inline-block animate-pulse fill-current" aria-label="love" />{' '}
+            by{' '}
+            <a
               href="https://linkedin.com/in/sourcingdenis"
               target="_blank"
               rel="noopener noreferrer"
