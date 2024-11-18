@@ -170,35 +170,90 @@ function AppContent() {
           <ThemeSwitcher />
         </div>
 
-        <div className="flex flex-col items-center min-h-[calc(100vh-16rem)] justify-between">
-          <div className="text-center mb-12">
-            <div className="flex items-center justify-center space-x-3 mb-4">
-              <Github className={`w-10 h-10 ${theme === 'dark' ? 'text-white' : 'text-black'}`} />
-              <h1
-                className={`text-4xl font-bold ${theme === 'dark' ? 'text-white' : 'text-black'} tracking-tight`}
-              >
-                DevFinder
-              </h1>
-            </div>
-            <p className={`text-lg ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-              Discover talented developers worldwide
-            </p>
-            <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-              Search through millions of GitHub profiles with advanced filtering
-            </p>
-          </div>
+        <div className="flex flex-col items-center">
+          {!isAuthenticated ? (
+            // Show hero section only for non-authenticated users
+            <div className="text-center relative mb-12 w-full max-w-4xl mx-auto">
+              <div className="absolute inset-0 -z-10 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-3xl animate-pulse-slow rounded-full" />
+              
+              <div className="flex items-center justify-center space-x-3 mb-6 group">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-sm opacity-75 group-hover:opacity-100 transition-opacity duration-300" />
+                  <Github 
+                    className={`w-12 h-12 relative ${
+                      theme === 'dark' ? 'text-white' : 'text-black'
+                    } transform group-hover:scale-110 transition-transform duration-300`} 
+                  />
+                </div>
+                <h1
+                  className={`text-5xl font-bold ${
+                    theme === 'dark' ? 'text-white' : 'text-black'
+                  } tracking-tight relative`}
+                >
+                  DevFinder
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-ping" />
+                </h1>
+              </div>
 
-          <div className="w-full max-w-3xl">
-            {isAuthenticated ? (
-              <SearchBar
-                keyword={keyword}
-                location={location}
-                setKeyword={setKeyword}
-                setLocation={setLocation}
-                onSearch={() => searchUsers(keyword, 1)}
-              />
-            ) : (
-              <div className="flex flex-col items-center justify-center">
+              <h2 className={`text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-transparent bg-clip-text animate-gradient-x`}>
+                Discover talented developers worldwide
+              </h2>
+
+              <div className="flex flex-wrap justify-center gap-3 mb-8">
+                {['Advanced Search', 'Real-time Data', 'GitHub Integration'].map((feature, index) => (
+                  <div
+                    key={feature}
+                    className={`px-4 py-2 rounded-full text-sm font-medium 
+                      ${theme === 'dark' 
+                        ? 'bg-gray-800 text-gray-200 hover:bg-gray-700' 
+                        : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                      }
+                      transform hover:scale-105 transition-all duration-300
+                      animate-fade-in`}
+                    style={{ animationDelay: `${index * 150}ms` }}
+                  >
+                    {feature}
+                  </div>
+                ))}
+              </div>
+
+              <p className={`text-lg ${
+                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+              } max-w-2xl mx-auto typewriter-text`}>
+                Search through millions of GitHub profiles with advanced filtering
+              </p>
+
+              <div className="grid grid-cols-3 gap-4 mt-12 max-w-2xl mx-auto mb-12">
+                {[
+                  { label: 'Active Developers', value: '40M+' },
+                  { label: 'Repositories', value: '200M+' },
+                  { label: 'Programming Languages', value: '370+' }
+                ].map((stat, index) => (
+                  <div
+                    key={stat.label}
+                    className={`p-4 rounded-lg ${
+                      theme === 'dark' 
+                        ? 'bg-gray-900/50 hover:bg-gray-800/50' 
+                        : 'bg-gray-50 hover:bg-gray-100'
+                    } transform hover:scale-105 transition-all duration-300
+                    animate-fade-in`}
+                    style={{ animationDelay: `${index * 150}ms` }}
+                  >
+                    <div className={`text-2xl font-bold mb-1 ${
+                      theme === 'dark' ? 'text-white' : 'text-black'
+                    }`}>
+                      {stat.value}
+                    </div>
+                    <div className={`text-sm ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
+                      {stat.label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-8">
                 <div className="relative group inline-block">
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-gradient-xy"></div>
                   <button
@@ -213,33 +268,50 @@ function AppContent() {
                     <Github className="w-5 h-5" />
                   </button>
                 </div>
-                <p className={`text-sm mt-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Sign in with GitHub to start searching for users
-                </p>
               </div>
-            )}
-          </div>
-
-          {isAuthenticated && (
-            <div className="w-full mt-8">
-              <UserList
-                users={users}
-                totalCount={totalCount}
-                currentPage={currentPage}
-                loading={loading}
-                error={error}
-                searchKeyword={keyword}
-                sortBy={sortBy}
-                onPageChange={handlePageChange}
-                onSortChange={handleSortChange}
-              />
             </div>
+          ) : (
+            // Show only search interface for authenticated users
+            <>
+              <div className="text-center mb-8">
+                <div className="flex items-center justify-center space-x-3 mb-4">
+                  <Github className={`w-8 h-8 ${theme === 'dark' ? 'text-white' : 'text-black'}`} />
+                  <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-black'} tracking-tight`}>
+                    DevFinder
+                  </h1>
+                </div>
+              </div>
+              
+              <div className="w-full max-w-3xl">
+                <SearchBar
+                  keyword={keyword}
+                  location={location}
+                  setKeyword={setKeyword}
+                  setLocation={setLocation}
+                  onSearch={() => searchUsers(keyword, 1)}
+                />
+              </div>
+
+              <div className="w-full mt-8">
+                <UserList
+                  users={users}
+                  totalCount={totalCount}
+                  currentPage={currentPage}
+                  loading={loading}
+                  error={error}
+                  searchKeyword={keyword}
+                  sortBy={sortBy}
+                  onPageChange={handlePageChange}
+                  onSortChange={handleSortChange}
+                />
+              </div>
+            </>
           )}
         </div>
       </div>
 
       <footer
-        className={`py-6 ${theme === 'dark' ? 'bg-black border-gray-800' : 'bg-white border-gray-100'} border-t`}
+        className={`py-6 ${theme === 'dark' ? 'bg-black border-gray-800' : 'bg-white border-gray-100'} border-t mt-auto`}
       >
         <div className="container mx-auto px-4 text-center max-w-7xl">
           <p

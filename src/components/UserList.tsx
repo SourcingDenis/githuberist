@@ -213,12 +213,18 @@ function UserList({
         {users.map((user) => (
           <Card 
             key={user.id} 
-            className={`w-full transition-all duration-300 hover:scale-[1.02] hover:shadow-lg ${
+            className={`w-full transition-all duration-300 hover:scale-[1.02] hover:shadow-lg relative ${
               theme === 'dark' 
                 ? 'bg-gray-900/50 border-gray-800 hover:bg-gray-800/70' 
                 : 'bg-white border-gray-100 hover:bg-gray-50'
             }`}
           >
+            {user.most_used_language && (
+              <div className="absolute top-4 right-4 z-10">
+                <LanguageBadge language={user.most_used_language} />
+              </div>
+            )}
+
             <CardHeader className="flex flex-row items-center gap-4">
               <a 
                 href={user.html_url}
@@ -245,9 +251,6 @@ function UserList({
                   >
                     {user.name || user.login}
                   </a>
-                  {user.most_used_language && (
-                    <LanguageBadge language={user.most_used_language} />
-                  )}
                 </div>
                 <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                   @{user.login}
