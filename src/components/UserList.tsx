@@ -1,7 +1,18 @@
 import React from 'react';
 import { GitHubUser } from '../types/github';
 import { useTheme } from '../contexts/ThemeContext';
-import { MapPin, Link as LinkIcon, Twitter, Users, Building, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, Link as LinkIcon, Twitter, Users, Building, Code, Star, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
+import { Card, CardHeader, CardContent, CardFooter } from './ui/card';
+import { Badge } from './ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+import { SortOption } from '../types/github';
+import LanguageBadge from './LanguageBadge';
 
 interface UserListProps {
   users: GitHubUser[];
@@ -10,8 +21,12 @@ interface UserListProps {
   loading: boolean;
   error: string | null;
   searchKeyword: string;
+  sortBy: SortOption;
   onPageChange: (page: number) => void;
+  onSortChange: (sort: SortOption) => void;
 }
+
+const ITEMS_PER_PAGE = 12;
 
 function UserList({ 
   users, 
@@ -20,10 +35,18 @@ function UserList({
   loading, 
   error, 
   searchKeyword,
-  onPageChange 
+  sortBy,
+  onPageChange,
+  onSortChange 
 }: UserListProps) {
   const { theme } = useTheme();
-  const totalPages = Math.ceil(Math.min(totalCount, 1000) / 10);
+  const totalPages = Math.ceil(Math.min(totalCount, 1000) / ITEMS_PER_PAGE);
+
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    return num.toString();
+  };
 
   const renderPaginationButtons = () => {
     const pages: (number | string)[] = [];
@@ -113,8 +136,29 @@ function UserList({
 
   if (loading) {
     return (
-      <div className={`text-center py-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-        Loading...
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {[...Array(6)].map((_, i) => (
+          <div 
+            key={i} 
+            className={`animate-pulse p-6 rounded-lg ${
+              theme === 'dark' ? 'bg-gray-900/50' : 'bg-gray-50'
+            }`}
+          >
+            <div className="flex items-center space-x-4">
+              <div className={`w-12 h-12 rounded-full ${
+                theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+              }`} />
+              <div className="flex-1 space-y-3">
+                <div className={`h-4 rounded ${
+                  theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+                }`} />
+                <div className={`h-3 rounded ${
+                  theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+                }`} />
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
@@ -128,11 +172,7 @@ function UserList({
   }
 
   if (!searchKeyword) {
-    return (
-      <div className={`text-center py-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-        Enter a search term to find GitHub users
-      </div>
-    );
+    return null;
   }
 
   if (users.length === 0) {
@@ -145,109 +185,156 @@ function UserList({
 
   return (
     <div className="space-y-6">
-      <div className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-        Found {totalCount.toLocaleString()} users
+      <div className="flex items-center justify-between">
+        <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+          <span className="text-lg font-medium">
+            {totalCount.toLocaleString()} {totalCount === 1 ? 'user' : 'users'} found
+          </span>
+          <span className="text-sm ml-4">
+            Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} of {totalCount.toLocaleString()}
+          </span>
+        </div>
+
+        <Select
+          value={sortBy}
+          onValueChange={(value: SortOption) => onSortChange(value)}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Sort by..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Most relevant</SelectItem>
+            <SelectItem value="followers">Most followers</SelectItem>
+            <SelectItem value="repositories">Most repositories</SelectItem>
+            <SelectItem value="stars">Most stars received</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       
-      <div className="grid gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {users.map((user) => (
-          <div 
-            key={user.id}
-            className={`p-6 rounded-lg border transition-all ${
+          <Card 
+            key={user.id} 
+            className={`w-full transition-all duration-300 hover:scale-[1.02] hover:shadow-lg relative ${
               theme === 'dark' 
-                ? 'bg-black border-gray-800 hover:border-gray-700' 
-                : 'bg-white border-gray-200 hover:border-gray-300'
+                ? 'bg-gray-900/50 border-gray-800 hover:bg-gray-800/70' 
+                : 'bg-white border-gray-100 hover:bg-gray-50'
             }`}
           >
-            <div className="flex items-start gap-4">
-              <img 
-                src={user.avatar_url} 
-                alt={`${user.login}'s avatar`}
-                className="w-16 h-16 rounded-full"
-              />
-              
-              <div className="flex-1 min-w-0">
+            {user.most_used_language && (
+              <div className="absolute top-4 right-4 z-10">
+                <LanguageBadge language={user.most_used_language} />
+              </div>
+            )}
+
+            <CardHeader className="flex flex-row items-center gap-4">
+              <a 
+                href={user.html_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative group"
+              >
+                <img 
+                  src={user.avatar_url} 
+                  alt={`${user.login}'s avatar`}
+                  className="w-16 h-16 rounded-full ring-2 ring-offset-2 ring-offset-background transition-transform duration-300 group-hover:scale-105
+                    ${theme === 'dark' ? 'ring-gray-700' : 'ring-gray-200'}"
+                />
+              </a>
+              <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <a
                     href={user.html_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`font-medium hover:underline ${
-                      theme === 'dark' ? 'text-white' : 'text-black'
+                    className={`text-lg font-semibold hover:underline ${
+                      theme === 'dark' ? 'text-white' : 'text-gray-900'
                     }`}
                   >
                     {user.name || user.login}
                   </a>
-                  <span className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
-                    @{user.login}
-                  </span>
                 </div>
-
-                {user.bio && (
-                  <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {user.bio}
-                  </p>
-                )}
-
-                <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-                  {user.location && (
-                    <div className={`flex items-center gap-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                      <MapPin className="w-4 h-4" />
-                      <span>{user.location}</span>
-                    </div>
-                  )}
-                  
-                  {user.blog && (
-                    <a
-                      href={user.blog.startsWith('http') ? user.blog : `https://${user.blog}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`flex items-center gap-1 hover:underline ${
-                        theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-black'
-                      }`}
-                    >
-                      <LinkIcon className="w-4 h-4" />
-                      <span>Website</span>
-                    </a>
-                  )}
-                  
-                  {user.twitter_username && (
-                    <a
-                      href={`https://twitter.com/${user.twitter_username}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`flex items-center gap-1 hover:underline ${
-                        theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-black'
-                      }`}
-                    >
-                      <Twitter className="w-4 h-4" />
-                      <span>@{user.twitter_username}</span>
-                    </a>
-                  )}
-                  
-                  {user.company && (
-                    <div className={`flex items-center gap-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                      <Building className="w-4 h-4" />
-                      <span>{user.company}</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-3 flex items-center gap-4 text-sm">
-                  <div className={`flex items-center gap-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                    <Users className="w-4 h-4" />
-                    <span>{user.followers.toLocaleString()} followers</span>
-                  </div>
-                  
-                  {user.most_used_language && (
-                    <div className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                      Most used: {user.most_used_language}
-                    </div>
-                  )}
-                </div>
+                <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                  @{user.login}
+                </span>
               </div>
-            </div>
-          </div>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              {user.bio && (
+                <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                  {user.bio}
+                </p>
+              )}
+
+              <div className="flex flex-wrap items-center gap-4">
+                {user.location && (
+                  <span className={`flex items-center gap-1.5 text-sm ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                  }`}>
+                    <MapPin className="w-4 h-4" />
+                    {user.location}
+                  </span>
+                )}
+                {user.company && (
+                  <span className={`flex items-center gap-1.5 text-sm ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                  }`}>
+                    <Building className="w-4 h-4" />
+                    {user.company}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex gap-6">
+                <div className={`flex items-center gap-2 ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                }`}>
+                  <Users className="w-5 h-5" />
+                  <div className="flex flex-col">
+                    <span className="text-lg font-semibold">{formatNumber(user.followers)}</span>
+                    <span className="text-xs">followers</span>
+                  </div>
+                </div>
+                {user.public_repos > 0 && (
+                  <div className={`flex items-center gap-2 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                  }`}>
+                    <Star className="w-5 h-5" />
+                    <div className="flex flex-col">
+                      <span className="text-lg font-semibold">{formatNumber(user.public_repos)}</span>
+                      <span className="text-xs">repositories</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+
+            <CardFooter className="flex gap-4 pt-4 border-t border-gray-800">
+              {user.blog && (
+                <a
+                  href={user.blog.startsWith('http') ? user.blog : `https://${user.blog}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-sm font-medium text-blue-500 hover:text-blue-400"
+                >
+                  <LinkIcon className="w-4 h-4" />
+                  Website
+                </a>
+              )}
+              {user.twitter_username && (
+                <a
+                  href={`https://twitter.com/${user.twitter_username}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-sm font-medium text-blue-500 hover:text-blue-400"
+                >
+                  <Twitter className="w-4 h-4" />
+                  @{user.twitter_username}
+                </a>
+              )}
+            </CardFooter>
+          </Card>
         ))}
       </div>
 

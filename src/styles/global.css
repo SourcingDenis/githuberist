@@ -1,37 +1,60 @@
 :root[data-theme="light"] {
-  --background-color: #f9fafb;
-  --text-color: #111827;
-  --text-secondary: #4b5563;
-  --primary-color: #007bff;
-  --border-color: #e5e7eb;
+  --background: #ffffff;
+  --foreground: #000000;
+  --card: #ffffff;
+  --card-foreground: #000000;
+  --primary: #000000;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --border: #e2e8f0;
 }
 
 :root[data-theme="dark"] {
-  --background-color: #111827;
-  --text-color: #ffffff;
-  --text-secondary: #9ca3af;
-  --primary-color: #4dabf7;
-  --border-color: #374151;
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #111111;
+  --card-foreground: #ffffff;
+  --primary: #ffffff;
+  --primary-foreground: #000000;
+  --secondary: #1e293b;
+  --secondary-foreground: #f8fafc;
+  --border: #334155;
 }
 
 body {
   background-color: var(--background-color);
-  color: var(--text-color);
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-@keyframes heartbeat {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.2);
-  }
-  100% {
-    transform: scale(1);
-  }
+  color: var(--foreground);
+  transition: background-color 0.2s ease, color 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 .animate-pulse {
   animation: heartbeat 1.5s ease infinite;
+}
+
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.typewriter-text {
+  overflow: hidden;
+  border-right: 2px solid;
+  white-space: nowrap;
+  animation: 
+    typing 3.5s steps(40, end),
+    blink-caret .75s step-end infinite;
+  margin: 0 auto;
+}
+
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent }
+  50% { border-color: currentColor }
 } 

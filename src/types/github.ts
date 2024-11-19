@@ -32,6 +32,8 @@ export interface GitHubUser {
   created_at: string;
   updated_at: string;
   most_used_language: string | null;
+  technologies?: string[];
+  total_stars?: number;
 }
 
 export interface SearchResults {
@@ -39,3 +41,5 @@ export interface SearchResults {
   incomplete_results: boolean;
   items: GitHubUser[];
 }
+
+export type SortOption = 'followers' | 'repositories' | 'stars' | '';
