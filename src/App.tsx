@@ -348,7 +348,7 @@ function AppContent() {
             <Heart className="w-4 h-4 text-red-500 inline-block animate-pulse fill-current" aria-label="love" />{' '}
             by{' '}
             <a
-              href="https://linkedin.com/in/sourcingdenis"
+              href="https://sourcingdenis.live"
               target="_blank"
               rel="noopener noreferrer"
               className={`hover:text-${theme === 'dark' ? 'white' : 'black'} transition-colors`}
