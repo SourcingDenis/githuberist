@@ -3,9 +3,13 @@
 /// <reference types="react-dom" />
 
 interface ImportMetaEnv {
-  readonly VITE_GITHUB_CLIENT_ID: string
-  readonly VITE_GITHUB_CLIENT_SECRET: string
-  readonly VITE_GITHUB_REDIRECT_URI: string
+  VITE_API_KEY: string
+  VITE_AUTH_DOMAIN: string
+  VITE_PROJECT_ID: string
+  VITE_STORAGE_BUCKET: string
+  VITE_MESSAGING_SENDER_ID: string
+  VITE_APP_ID: string
+  VITE_GITHUB_CLIENT_ID: string
 }
 
 interface ImportMeta {

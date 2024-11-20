@@ -1,7 +1,1 @@
-/// <reference types="react" />
-
-declare namespace JSX {
-  interface IntrinsicElements {
-    [elemName: string]: any;
-  }
-} 
+// File can be empty if you're not adding custom JSX types 
