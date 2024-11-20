@@ -1,9 +1,6 @@
-import React from 'react';
-import { GitHubUser } from '../types/github';
 import { useTheme } from '../contexts/ThemeContext';
 import { MapPin, Link as LinkIcon, Twitter, Users, Building, Star, ChevronLeft, ChevronRight, Linkedin } from 'lucide-react';
-import { Card, CardHeader, CardContent, CardFooter } from './ui/card';
-import { Badge } from './ui/badge';
+import { Card } from './ui/card';
 import {
   Select,
   SelectContent,
@@ -11,8 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-import { SortOption } from '../types/github';
+import { SortOption, GitHubUser } from '../types/github';
 import LanguageBadge from './LanguageBadge';
+import { Fragment } from 'react';
 
 interface UserListProps {
   users: GitHubUser[];
@@ -28,6 +26,12 @@ interface UserListProps {
 
 const ITEMS_PER_PAGE = 12;
 
+const formatNumber = (num: number): string => {
+  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+  if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+  return num.toString();
+};
+
 function UserList({ 
   users, 
   totalCount, 
@@ -41,12 +45,6 @@ function UserList({
 }: UserListProps) {
   const { theme } = useTheme();
   const totalPages = Math.ceil(Math.min(totalCount, 1000) / ITEMS_PER_PAGE);
-
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-    return num.toString();
-  };
 
   const renderPaginationButtons = () => {
     const pages: (number | string)[] = [];
@@ -94,7 +92,7 @@ function UserList({
         </button>
 
         {pages.map((page, index) => (
-          <React.Fragment key={index}>
+          <Fragment key={index}>
             {typeof page === 'number' ? (
               <button
                 onClick={() => onPageChange(page)}
@@ -115,7 +113,7 @@ function UserList({
                 {page}
               </span>
             )}
-          </React.Fragment>
+          </Fragment>
         ))}
 
         <button

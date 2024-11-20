@@ -1,4 +1,3 @@
-import React from 'react';
 import { MapPin, Link as LinkIcon, Twitter, Users, Building, Code } from 'lucide-react';
 import type { GitHubUser } from '../types/github';
 
