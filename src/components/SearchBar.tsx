@@ -42,7 +42,9 @@ function SearchBar({
 
   const debouncedSearch = useCallback(
     debounce(() => {
-      onSearch?.();
+      if (onSearch) {
+        onSearch();
+      }
     }, 500),
     [onSearch]
   );
