@@ -1,21 +1,59 @@
-import React from 'react';
-import { Search, MapPin } from 'lucide-react';
+import React, { ChangeEvent } from 'react';
+import { Search, MapPin, Code, ChevronDown } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface SearchBarProps {
   keyword: string;
   location: string;
+  language: string;
   setKeyword: (value: string) => void;
   setLocation: (value: string) => void;
+  setLanguage: (value: string) => void;
   onSearch: () => void;
 }
 
-function SearchBar({ keyword, location, setKeyword, setLocation, onSearch }: SearchBarProps) {
+// Common programming languages
+const PROGRAMMING_LANGUAGES = [
+  'JavaScript',
+  'TypeScript',
+  'Python',
+  'Java',
+  'C++',
+  'C#',
+  'Ruby',
+  'Go',
+  'Rust',
+  'PHP',
+  'Swift',
+  'Kotlin',
+].sort();
+
+function SearchBar({ 
+  keyword, 
+  location, 
+  language,
+  setKeyword, 
+  setLocation,
+  setLanguage, 
+  onSearch 
+}: SearchBarProps) {
   const { theme } = useTheme();
-  
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSearch();
+  };
+
+  const handleKeywordChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setKeyword(e.target.value);
+  };
+
+  const handleLocationChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setLocation(e.target.value);
+  };
+
+  const handleLanguageChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    setLanguage(e.target.value);
   };
 
   return (
@@ -35,7 +73,7 @@ function SearchBar({ keyword, location, setKeyword, setLocation, onSearch }: Sea
                 id="keyword"
                 type="text"
                 value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
+                onChange={handleKeywordChange}
                 className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
                   theme === 'dark'
                     ? 'bg-black border-gray-800 text-white focus:border-gray-700'
@@ -55,7 +93,7 @@ function SearchBar({ keyword, location, setKeyword, setLocation, onSearch }: Sea
                 id="location"
                 type="text"
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                onChange={handleLocationChange}
                 className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
                   theme === 'dark'
                     ? 'bg-black border-gray-800 text-white focus:border-gray-700'
@@ -63,6 +101,36 @@ function SearchBar({ keyword, location, setKeyword, setLocation, onSearch }: Sea
                 } focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all`}
                 placeholder="Filter by location..."
               />
+            </div>
+          </div>
+
+          <div className="flex-1">
+            <div className="relative">
+              <Code className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+              }`} />
+              <select
+                id="language"
+                value={language}
+                onChange={handleLanguageChange}
+                className={`w-full pl-10 pr-4 py-3 rounded-lg border appearance-none ${
+                  theme === 'dark'
+                    ? 'bg-black border-gray-800 text-white focus:border-gray-700'
+                    : 'bg-white border-gray-200 text-black focus:border-gray-300'
+                } focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all`}
+              >
+                <option value="">Any language</option>
+                {PROGRAMMING_LANGUAGES.map((lang) => (
+                  <option key={lang} value={lang}>
+                    {lang}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <ChevronDown className={`w-4 h-4 ${
+                  theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                }`} />
+              </div>
             </div>
           </div>
           
