@@ -9,6 +9,9 @@ import { Octokit } from '@octokit/rest';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { motion } from 'framer-motion';
 
+type RepoLanguage = string | null;
+type LanguageCount = { [key: string]: number };
+
 const stats = [
   { name: 'Pull Requests', value: '4.2B+' },
   { name: 'Programming Languages', value: '50+' },
@@ -46,7 +49,13 @@ function AppContent() {
   };
 
   const searchUsers = async (query: string, page = 1, sort: SortOption = sortBy) => {
-    if (!query.trim()) return;
+    // Check for at least one search criteria
+    if (!query.trim() && !location.trim() && !language) {
+      setError('Please enter at least one search criteria');
+      setUsers([]);
+      setTotalCount(0);
+      return;
+    }
 
     // Check for authentication before proceeding
     if (!isAuthenticated || !accessToken) {
@@ -61,12 +70,31 @@ function AppContent() {
 
     try {
       const octokit = new Octokit({ auth: accessToken });
-      let endpoint = `${query} in:bio${location ? ` location:${location}` : ''}`;
       
-      // Add language filter if specified
-      if (language) {
-        endpoint += ` language:${language}`;
+      // Build search query based on available filters
+      let searchQuery = [];
+      
+      // Add bio search if provided
+      if (query.trim()) {
+        searchQuery.push(`${query} in:bio`);
       }
+      
+      // Add location if provided
+      if (location.trim()) {
+        searchQuery.push(`location:${location}`);
+      }
+      
+      // Add language if provided
+      if (language) {
+        searchQuery.push(`language:${language}`);
+      }
+
+      // If no bio search but other filters exist, add a wildcard
+      if (!query.trim() && (location.trim() || language)) {
+        searchQuery.unshift('type:user');
+      }
+
+      const endpoint = searchQuery.join(' ');
 
       const searchResponse = await octokit.search.users({
         q: endpoint,
@@ -97,7 +125,7 @@ function AppContent() {
                 per_page: 100,
                 type: 'owner',
               });
-              totalStars = (repos || []).reduce((acc, repo) => 
+              totalStars = repos.reduce((acc, repo) => 
                 acc + (repo.fork ? 0 : (repo.stargazers_count || 0)), 0
               );
             }
@@ -106,7 +134,8 @@ function AppContent() {
               ...userData.data,
               most_used_language: mostUsedLanguage,
               total_stars: totalStars,
-            };
+              twitter_username: userData.data.twitter_username || null,
+            } as GitHubUser;
           } catch (err) {
             return {
               ...user,
@@ -120,16 +149,16 @@ function AppContent() {
               company: null,
               most_used_language: null,
               total_stars: 0,
-            };
+            } as GitHubUser;
           }
         })
       );
 
       if (sort === 'stars') {
-        users.sort((a: GitHubUser, b: GitHubUser) => (b.total_stars || 0) - (a.total_stars || 0));
+        users = users.sort((a, b) => (b.total_stars || 0) - (a.total_stars || 0));
       }
 
-      setUsers(users as GitHubUser[]);
+      setUsers(users);
       setTotalCount(Math.min(searchResponse.data.total_count, 1000));
       setCurrentPage(page);
     } catch (err) {
@@ -146,7 +175,7 @@ function AppContent() {
     }
   };
 
-  const getMostUsedLanguage = async (username: string, token: string) => {
+  const getMostUsedLanguage = async (username: string, token: string): Promise<string | null> => {
     try {
       const octokit = new Octokit({ auth: token });
 
@@ -156,18 +185,21 @@ function AppContent() {
         per_page: 10,
       });
 
-      const languages = repos.map((repo) => repo.language).filter(Boolean);
+      const languages = repos
+        .map(repo => repo.language)
+        .filter((lang): lang is string => lang !== null && lang !== undefined);
 
       if (languages.length === 0) return null;
 
-      const languageCounts = languages.reduce<Record<string, number>>((acc: Record<string, number>, lang: string) => {
-        if (lang) {
-          acc[lang] = (acc[lang] || 0) + 1;
-        }
+      const languageCounts = languages.reduce<LanguageCount>((acc, lang) => {
+        acc[lang] = (acc[lang] || 0) + 1;
         return acc;
       }, {});
 
-      return Object.entries(languageCounts).sort(([, a], [, b]) => b - a)[0][0];
+      const sortedLanguages = Object.entries(languageCounts)
+        .sort(([, a], [, b]) => b - a);
+
+      return sortedLanguages[0][0];
     } catch {
       return null;
     }
@@ -175,6 +207,28 @@ function AppContent() {
 
   const handlePageChange = (page: number) => {
     searchUsers(keyword, page);
+  };
+
+  // Add individual search handlers for each filter
+  const handleKeywordSearch = (newKeyword: string) => {
+    setKeyword(newKeyword);
+    if (newKeyword.trim() || location.trim() || language) {
+      searchUsers(newKeyword, 1);
+    }
+  };
+
+  const handleLocationSearch = (newLocation: string) => {
+    setLocation(newLocation);
+    if (keyword.trim() || newLocation.trim() || language) {
+      searchUsers(keyword, 1);
+    }
+  };
+
+  const handleLanguageSearch = (newLanguage: string) => {
+    setLanguage(newLanguage);
+    if (keyword.trim() || location.trim() || newLanguage) {
+      searchUsers(keyword, 1);
+    }
   };
 
   return (
@@ -281,7 +335,7 @@ function AppContent() {
               </div>
             </div>
           ) : (
-            // Show only search interface for authenticated users
+            // Show search interface for authenticated users
             <>
               <div className="text-center mb-8">
                 <div className="flex items-center justify-center space-x-3 mb-4 group">
@@ -311,9 +365,9 @@ function AppContent() {
                   keyword={keyword}
                   location={location}
                   language={language}
-                  setKeyword={setKeyword}
-                  setLocation={setLocation}
-                  setLanguage={setLanguage}
+                  setKeyword={handleKeywordSearch}
+                  setLocation={handleLocationSearch}
+                  setLanguage={handleLanguageSearch}
                   onSearch={() => searchUsers(keyword, 1)}
                 />
               </div>
