@@ -11,7 +11,3 @@ A GitHub user search application that helps discover talented developers worldwi
 - Responsive design
 - Most used programming language detection
 - Detailed user profiles
-
-## Setup
-
-1. Clone the repository
