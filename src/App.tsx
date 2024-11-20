@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Github, Heart } from 'lucide-react';
 import SearchBar from './components/SearchBar';
 import UserList from './components/UserList';
-import { GitHubUser, SortOption, SearchFilters } from './types/github';
+import { GitHubUser, SortOption } from './types/github';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { Octokit } from '@octokit/rest';
@@ -21,18 +21,16 @@ const stats = [
 function AppContent() {
   const { theme } = useTheme();
   const { isAuthenticated, login, accessToken, error: authError } = useAuth();
-  const [filters, setFilters] = useState<SearchFilters>({
-    keyword: '',
-    location: '',
-    language: '',
-    topics: [],
-  });
+  const [keyword, setKeyword] = useState('');
+  const [location, setLocation] = useState('');
   const [users, setUsers] = useState<GitHubUser[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('');
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [language, setLanguage] = useState('');
 
   // Redirect user to the home screen after logging in
   useEffect(() => {
@@ -45,14 +43,14 @@ function AppContent() {
   const handleSortChange = (newSort: SortOption) => {
     setSortBy(newSort);
     setCurrentPage(1);
-    if (filters.keyword) {
-      searchUsers(1, newSort);
+    if (keyword) {
+      searchUsers(keyword, 1, newSort);
     }
   };
 
-  const searchUsers = async (page = 1, sort: SortOption = sortBy) => {
+  const searchUsers = async (query: string, page = 1, sort: SortOption = sortBy) => {
     // Check for at least one search criteria
-    if (!filters.keyword && !filters.location && !filters.language && filters.topics.length === 0) {
+    if (!query.trim() && !location.trim() && !language) {
       setError('Please enter at least one search criteria');
       setUsers([]);
       setTotalCount(0);
@@ -76,22 +74,24 @@ function AppContent() {
       // Build search query based on available filters
       let searchQuery = [];
       
-      if (filters.keyword) {
-        searchQuery.push(`${filters.keyword} in:bio`);
+      // Add bio search if provided
+      if (query.trim()) {
+        searchQuery.push(`${query} in:bio`);
       }
       
-      if (filters.location) {
-        searchQuery.push(`location:${filters.location}`);
+      // Add location if provided
+      if (location.trim()) {
+        searchQuery.push(`location:${location}`);
       }
       
-      if (filters.language) {
-        searchQuery.push(`language:${filters.language}`);
+      // Add language if provided
+      if (language) {
+        searchQuery.push(`language:${language}`);
       }
 
-      if (filters.topics.length > 0) {
-        filters.topics.forEach(topic => {
-          searchQuery.push(`topic:${topic}`);
-        });
+      // If no bio search but other filters exist, add a wildcard
+      if (!query.trim() && (location.trim() || language)) {
+        searchQuery.unshift('type:user');
       }
 
       const endpoint = searchQuery.join(' ');
@@ -206,7 +206,29 @@ function AppContent() {
   };
 
   const handlePageChange = (page: number) => {
-    searchUsers(page);
+    searchUsers(keyword, page);
+  };
+
+  // Add individual search handlers for each filter
+  const handleKeywordSearch = (newKeyword: string) => {
+    setKeyword(newKeyword);
+    if (newKeyword.trim() || location.trim() || language) {
+      searchUsers(newKeyword, 1);
+    }
+  };
+
+  const handleLocationSearch = (newLocation: string) => {
+    setLocation(newLocation);
+    if (keyword.trim() || newLocation.trim() || language) {
+      searchUsers(keyword, 1);
+    }
+  };
+
+  const handleLanguageSearch = (newLanguage: string) => {
+    setLanguage(newLanguage);
+    if (keyword.trim() || location.trim() || newLanguage) {
+      searchUsers(keyword, 1);
+    }
   };
 
   return (
@@ -218,7 +240,7 @@ function AppContent() {
 
         <div className="flex flex-col items-center">
           {!isAuthenticated ? (
-            // Hero section for non-authenticated users
+            // Show hero section only for non-authenticated users
             <div className="text-center relative mb-12 w-full max-w-4xl mx-auto">
               <div className="absolute inset-0 -z-10 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-3xl animate-pulse-slow rounded-full" />
               
@@ -313,7 +335,7 @@ function AppContent() {
               </div>
             </div>
           ) : (
-            // Authenticated user section
+            // Show search interface for authenticated users
             <>
               <div className="text-center mb-8">
                 <div className="flex items-center justify-center space-x-3 mb-4 group">
@@ -340,10 +362,13 @@ function AppContent() {
               
               <div className="w-full max-w-3xl">
                 <SearchBar
-                  filters={filters}
-                  onFiltersChange={setFilters}
-                  onSearch={() => searchUsers(1)}
-                  loading={loading}
+                  keyword={keyword}
+                  location={location}
+                  language={language}
+                  setKeyword={handleKeywordSearch}
+                  setLocation={handleLocationSearch}
+                  setLanguage={handleLanguageSearch}
+                  onSearch={() => searchUsers(keyword, 1)}
                 />
               </div>
 
@@ -354,7 +379,7 @@ function AppContent() {
                   currentPage={currentPage}
                   loading={loading}
                   error={error}
-                  searchKeyword={filters.keyword}
+                  searchKeyword={keyword}
                   sortBy={sortBy}
                   onPageChange={handlePageChange}
                   onSortChange={handleSortChange}

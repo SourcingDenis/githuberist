@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
-import { Search, MapPin, Code, Hash, X, Plus } from 'lucide-react';
+import React, { ChangeEvent, useCallback } from 'react';
+import { Search, MapPin, Code, ChevronDown } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
-import { SearchFilters } from '../types/github';
-import { motion, AnimatePresence } from 'framer-motion';
+import debounce from 'lodash/debounce';
+import { motion } from 'framer-motion';
 
 interface SearchBarProps {
-  filters: SearchFilters;
-  onFiltersChange: (filters: SearchFilters) => void;
-  onSearch: () => void;
-  loading?: boolean;
+  keyword: string;
+  location: string;
+  language: string;
+  setKeyword: (value: string) => void;
+  setLocation: (value: string) => void;
+  setLanguage: (value: string) => void;
+  onSearch?: () => void;
 }
 
 const PROGRAMMING_LANGUAGES = [
@@ -26,201 +29,165 @@ const PROGRAMMING_LANGUAGES = [
   'Kotlin',
 ].sort();
 
-export default function SearchBar({ filters, onFiltersChange, onSearch, loading }: SearchBarProps) {
+function SearchBar({ 
+  keyword, 
+  location, 
+  language,
+  setKeyword, 
+  setLocation,
+  setLanguage,
+  onSearch 
+}: SearchBarProps) {
   const { theme } = useTheme();
-  const [activeFilters, setActiveFilters] = useState<('location' | 'language' | 'topics')[]>([]);
-  const [showFilterMenu, setShowFilterMenu] = useState(false);
 
-  const handleFilterChange = (key: keyof SearchFilters, value: any) => {
-    onFiltersChange({
-      ...filters,
-      [key]: value,
-    });
+  const debouncedSearch = useCallback(
+    debounce(() => {
+      onSearch?.();
+    }, 500),
+    [onSearch]
+  );
+
+  const handleKeywordChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setKeyword(value);
+    debouncedSearch();
   };
 
-  const toggleFilter = (filter: 'location' | 'language' | 'topics') => {
-    if (activeFilters.includes(filter)) {
-      setActiveFilters(activeFilters.filter(f => f !== filter));
-      // Clear the filter value when removing it
-      handleFilterChange(filter, filter === 'topics' ? [] : '');
-    } else {
-      setActiveFilters([...activeFilters, filter]);
-    }
+  const handleLocationChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setLocation(value);
+    debouncedSearch();
+  };
+
+  const handleLanguageChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setLanguage(value);
+    debouncedSearch();
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    onSearch?.();
   };
 
   return (
-    <div className="w-full space-y-4">
-      {/* Main Search Bar */}
-      <div className={`relative flex items-center gap-2 p-1 rounded-lg border transition-colors ${
-        theme === 'dark'
-          ? 'bg-gray-900 border-gray-800'
-          : 'bg-white border-gray-200'
+    <motion.form 
+      onSubmit={handleSubmit} 
+      className="w-full"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className={`p-4 rounded-xl backdrop-blur-lg ${
+        theme === 'dark' 
+          ? 'bg-gray-900/50 border border-gray-800 shadow-lg shadow-gray-900/20' 
+          : 'bg-white/50 border border-gray-200 shadow-lg shadow-gray-200/20'
       }`}>
-        <div className="flex-1 flex items-center gap-2">
-          <Search className={`w-5 h-5 ml-3 ${
-            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-          }`} />
-          <input
-            type="text"
-            value={filters.keyword}
-            onChange={(e) => handleFilterChange('keyword', e.target.value)}
-            placeholder="Search GitHub users..."
-            className={`flex-1 px-2 py-3 bg-transparent border-none focus:outline-none ${
-              theme === 'dark' ? 'text-white' : 'text-black'
-            }`}
-          />
-        </div>
-
-        <div className="relative">
-          <button
-            onClick={() => setShowFilterMenu(!showFilterMenu)}
-            className={`p-2 rounded-md transition-colors ${
-              theme === 'dark'
-                ? 'hover:bg-gray-800 text-gray-300'
-                : 'hover:bg-gray-100 text-gray-600'
-            }`}
+        <div className="flex flex-col md:flex-row gap-4">
+          <motion.div 
+            className="flex-1"
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
           >
-            <Plus className="w-5 h-5" />
-          </button>
-
-          <AnimatePresence>
-            {showFilterMenu && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg z-10 ${
+            <div className="relative group">
+              <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-200 ${
+                theme === 'dark' 
+                  ? 'text-gray-400 group-hover:text-gray-300' 
+                  : 'text-gray-500 group-hover:text-gray-600'
+              }`} />
+              <input
+                id="keyword"
+                type="text"
+                value={keyword}
+                onChange={handleKeywordChange}
+                className={`w-full pl-10 pr-4 py-3 rounded-lg border transition-all duration-200 ${
                   theme === 'dark'
-                    ? 'bg-gray-900 border border-gray-800'
-                    : 'bg-white border border-gray-200'
-                }`}
-              >
-                <div className="py-1">
-                  {[
-                    { id: 'location', label: 'Location', icon: MapPin },
-                    { id: 'language', label: 'Language', icon: Code },
-                    { id: 'topics', label: 'Topics', icon: Hash },
-                  ].map(({ id, label, icon: Icon }) => (
-                    <button
-                      key={id}
-                      onClick={() => {
-                        toggleFilter(id as 'location' | 'language' | 'topics');
-                        setShowFilterMenu(false);
-                      }}
-                      className={`w-full flex items-center px-4 py-2 text-sm ${
-                        theme === 'dark'
-                          ? 'hover:bg-gray-800 text-gray-300'
-                          : 'hover:bg-gray-100 text-gray-700'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4 mr-2" />
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+                    ? 'bg-black/50 border-gray-800 text-white placeholder-gray-500 focus:border-gray-700 hover:bg-black/70'
+                    : 'bg-white border-gray-200 text-black placeholder-gray-400 focus:border-gray-300 hover:bg-gray-50'
+                } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
+                placeholder="Search by bio..."
+              />
+            </div>
+          </motion.div>
+          
+          <motion.div 
+            className="flex-1"
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="relative group">
+              <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-200 ${
+                theme === 'dark' 
+                  ? 'text-gray-400 group-hover:text-gray-300' 
+                  : 'text-gray-500 group-hover:text-gray-600'
+              }`} />
+              <input
+                id="location"
+                type="text"
+                value={location}
+                onChange={handleLocationChange}
+                className={`w-full pl-10 pr-4 py-3 rounded-lg border transition-all duration-200 ${
+                  theme === 'dark'
+                    ? 'bg-black/50 border-gray-800 text-white placeholder-gray-500 focus:border-gray-700 hover:bg-black/70'
+                    : 'bg-white border-gray-200 text-black placeholder-gray-400 focus:border-gray-300 hover:bg-gray-50'
+                } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
+                placeholder="Filter by location..."
+              />
+            </div>
+          </motion.div>
 
-        <button
-          onClick={onSearch}
-          disabled={loading}
-          className={`px-4 py-2 rounded-md font-medium transition-colors ${
-            theme === 'dark'
-              ? 'bg-white text-black hover:bg-gray-200'
-              : 'bg-black text-white hover:bg-gray-800'
-          } disabled:opacity-50 disabled:cursor-not-allowed`}
-        >
-          {loading ? 'Searching...' : 'Search'}
-        </button>
+          <motion.div 
+            className="flex-1"
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="relative group">
+              <Code className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-200 ${
+                theme === 'dark' 
+                  ? 'text-gray-400 group-hover:text-gray-300' 
+                  : 'text-gray-500 group-hover:text-gray-600'
+              }`} />
+              <select
+                id="language"
+                value={language}
+                onChange={handleLanguageChange}
+                className={`w-full pl-10 pr-8 py-3 rounded-lg border appearance-none transition-all duration-200 ${
+                  theme === 'dark'
+                    ? 'bg-black/50 border-gray-800 text-white focus:border-gray-700 hover:bg-black/70'
+                    : 'bg-white border-gray-200 text-black focus:border-gray-300 hover:bg-gray-50'
+                } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
+              >
+                <option value="">Any language</option>
+                {PROGRAMMING_LANGUAGES.map((lang) => (
+                  <option key={lang} value={lang}>
+                    {lang}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none transition-transform duration-200 group-hover:translate-y-[-45%]">
+                <ChevronDown className={`w-4 h-4 transition-colors duration-200 ${
+                  theme === 'dark' ? 'text-gray-400 group-hover:text-gray-300' : 'text-gray-500 group-hover:text-gray-600'
+                }`} />
+              </div>
+            </div>
+          </motion.div>
+          
+          <motion.button
+            type="submit"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+              theme === 'dark'
+                ? 'bg-white text-black hover:bg-gray-200 hover:shadow-lg hover:shadow-white/10'
+                : 'bg-black text-white hover:bg-gray-800 hover:shadow-lg hover:shadow-black/20'
+            } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
+          >
+            Search
+          </motion.button>
+        </div>
       </div>
-
-      {/* Active Filters */}
-      <AnimatePresence>
-        <div className="flex flex-wrap gap-2">
-          {activeFilters.map((filter) => (
-            <motion.div
-              key={filter}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className={`flex items-center gap-2 p-2 rounded-lg border ${
-                theme === 'dark'
-                  ? 'bg-gray-900 border-gray-800'
-                  : 'bg-white border-gray-200'
-              }`}
-            >
-              {filter === 'location' && (
-                <>
-                  <MapPin className="w-4 h-4" />
-                  <input
-                    type="text"
-                    value={filters.location}
-                    onChange={(e) => handleFilterChange('location', e.target.value)}
-                    placeholder="Enter location..."
-                    className={`bg-transparent border-none focus:outline-none ${
-                      theme === 'dark' ? 'text-white' : 'text-black'
-                    }`}
-                  />
-                </>
-              )}
-
-              {filter === 'language' && (
-                <>
-                  <Code className="w-4 h-4" />
-                  <select
-                    value={filters.language}
-                    onChange={(e) => handleFilterChange('language', e.target.value)}
-                    className={`bg-transparent border-none focus:outline-none ${
-                      theme === 'dark' ? 'text-white' : 'text-black'
-                    }`}
-                  >
-                    <option value="">Select language</option>
-                    {PROGRAMMING_LANGUAGES.map((lang) => (
-                      <option key={lang} value={lang}>
-                        {lang}
-                      </option>
-                    ))}
-                  </select>
-                </>
-              )}
-
-              {filter === 'topics' && (
-                <>
-                  <Hash className="w-4 h-4" />
-                  <input
-                    type="text"
-                    value={filters.topics.join(', ')}
-                    onChange={(e) => {
-                      const topicsArray = e.target.value
-                        .split(',')
-                        .map(topic => topic.trim())
-                        .filter(topic => topic.length > 0);
-                      handleFilterChange('topics', topicsArray);
-                    }}
-                    placeholder="Add topics (comma-separated)..."
-                    className={`bg-transparent border-none focus:outline-none ${
-                      theme === 'dark' ? 'text-white' : 'text-black'
-                    }`}
-                  />
-                </>
-              )}
-
-              <button
-                onClick={() => toggleFilter(filter)}
-                className={`p-1 rounded-md transition-colors ${
-                  theme === 'dark'
-                    ? 'hover:bg-gray-800 text-gray-400'
-                    : 'hover:bg-gray-100 text-gray-500'
-                }`}
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </motion.div>
-          ))}
-        </div>
-      </AnimatePresence>
-    </div>
+    </motion.form>
   );
 }
+
+export default SearchBar;
