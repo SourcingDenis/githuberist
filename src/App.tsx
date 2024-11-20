@@ -27,6 +27,7 @@ function AppContent() {
   const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('');
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [language, setLanguage] = useState('');
 
   // Redirect user to the home screen after logging in
   useEffect(() => {
@@ -61,6 +62,11 @@ function AppContent() {
     try {
       const octokit = new Octokit({ auth: accessToken });
       let endpoint = `${query} in:bio${location ? ` location:${location}` : ''}`;
+      
+      // Add language filter if specified
+      if (language) {
+        endpoint += ` language:${language}`;
+      }
 
       const searchResponse = await octokit.search.users({
         q: endpoint,
@@ -77,7 +83,7 @@ function AppContent() {
       }
 
       let users = await Promise.all(
-        searchResponse.data.items.map(async (user) => {
+        searchResponse.data.items.map(async (user: { login: string }) => {
           try {
             const [userData, mostUsedLanguage] = await Promise.all([
               octokit.users.getByUsername({ username: user.login }),
@@ -120,7 +126,7 @@ function AppContent() {
       );
 
       if (sort === 'stars') {
-        users.sort((a, b) => (b.total_stars || 0) - (a.total_stars || 0));
+        users.sort((a: GitHubUser, b: GitHubUser) => (b.total_stars || 0) - (a.total_stars || 0));
       }
 
       setUsers(users as GitHubUser[]);
@@ -154,7 +160,7 @@ function AppContent() {
 
       if (languages.length === 0) return null;
 
-      const languageCounts = languages.reduce<Record<string, number>>((acc, lang) => {
+      const languageCounts = languages.reduce<Record<string, number>>((acc: Record<string, number>, lang: string) => {
         if (lang) {
           acc[lang] = (acc[lang] || 0) + 1;
         }
@@ -304,8 +310,10 @@ function AppContent() {
                 <SearchBar
                   keyword={keyword}
                   location={location}
+                  language={language}
                   setKeyword={setKeyword}
                   setLocation={setLocation}
+                  setLanguage={setLanguage}
                   onSearch={() => searchUsers(keyword, 1)}
                 />
               </div>
