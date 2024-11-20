@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Github, Heart } from 'lucide-react';
 import SearchBar from './components/SearchBar';
 import UserList from './components/UserList';
-import { GitHubUser, SortOption } from './types/github';
+import { GitHubUser, SortOption, SearchFilters } from './types/github';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { Octokit } from '@octokit/rest';
@@ -21,8 +21,12 @@ const stats = [
 function AppContent() {
   const { theme } = useTheme();
   const { isAuthenticated, login, accessToken, error: authError } = useAuth();
-  const [keyword, setKeyword] = useState('');
-  const [location, setLocation] = useState('');
+  const [filters, setFilters] = useState<SearchFilters>({
+    keyword: '',
+    location: '',
+    language: '',
+    topics: [],
+  });
   const [users, setUsers] = useState<GitHubUser[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -43,14 +47,14 @@ function AppContent() {
   const handleSortChange = (newSort: SortOption) => {
     setSortBy(newSort);
     setCurrentPage(1);
-    if (keyword) {
-      searchUsers(keyword, 1, newSort);
+    if (filters.keyword) {
+      searchUsers(1, newSort);
     }
   };
 
-  const searchUsers = async (query: string, page = 1, sort: SortOption = sortBy) => {
+  const searchUsers = async (page = 1, sort: SortOption = sortBy) => {
     // Check for at least one search criteria
-    if (!query.trim() && !location.trim() && !language) {
+    if (!filters.keyword && !filters.location && !filters.language && filters.topics.length === 0) {
       setError('Please enter at least one search criteria');
       setUsers([]);
       setTotalCount(0);
@@ -74,24 +78,22 @@ function AppContent() {
       // Build search query based on available filters
       let searchQuery = [];
       
-      // Add bio search if provided
-      if (query.trim()) {
-        searchQuery.push(`${query} in:bio`);
+      if (filters.keyword) {
+        searchQuery.push(`${filters.keyword} in:bio`);
       }
       
-      // Add location if provided
-      if (location.trim()) {
-        searchQuery.push(`location:${location}`);
+      if (filters.location) {
+        searchQuery.push(`location:${filters.location}`);
       }
       
-      // Add language if provided
-      if (language) {
-        searchQuery.push(`language:${language}`);
+      if (filters.language) {
+        searchQuery.push(`language:${filters.language}`);
       }
 
-      // If no bio search but other filters exist, add a wildcard
-      if (!query.trim() && (location.trim() || language)) {
-        searchQuery.unshift('type:user');
+      if (filters.topics.length > 0) {
+        filters.topics.forEach(topic => {
+          searchQuery.push(`topic:${topic}`);
+        });
       }
 
       const endpoint = searchQuery.join(' ');
@@ -206,28 +208,37 @@ function AppContent() {
   };
 
   const handlePageChange = (page: number) => {
-    searchUsers(keyword, page);
+    searchUsers(page);
   };
 
   // Add individual search handlers for each filter
   const handleKeywordSearch = (newKeyword: string) => {
-    setKeyword(newKeyword);
-    if (newKeyword.trim() || location.trim() || language) {
-      searchUsers(newKeyword, 1);
+    setFilters({
+      ...filters,
+      keyword: newKeyword,
+    });
+    if (newKeyword.trim() || filters.location.trim() || filters.language) {
+      searchUsers(1);
     }
   };
 
   const handleLocationSearch = (newLocation: string) => {
-    setLocation(newLocation);
-    if (keyword.trim() || newLocation.trim() || language) {
-      searchUsers(keyword, 1);
+    setFilters({
+      ...filters,
+      location: newLocation,
+    });
+    if (filters.keyword.trim() || newLocation.trim() || filters.language) {
+      searchUsers(1);
     }
   };
 
   const handleLanguageSearch = (newLanguage: string) => {
-    setLanguage(newLanguage);
-    if (keyword.trim() || location.trim() || newLanguage) {
-      searchUsers(keyword, 1);
+    setFilters({
+      ...filters,
+      language: newLanguage,
+    });
+    if (filters.keyword.trim() || filters.location.trim() || newLanguage) {
+      searchUsers(1);
     }
   };
 
@@ -362,13 +373,10 @@ function AppContent() {
               
               <div className="w-full max-w-3xl">
                 <SearchBar
-                  keyword={keyword}
-                  location={location}
-                  language={language}
-                  setKeyword={handleKeywordSearch}
-                  setLocation={handleLocationSearch}
-                  setLanguage={handleLanguageSearch}
-                  onSearch={() => searchUsers(keyword, 1)}
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                  onSearch={() => searchUsers(1)}
+                  loading={loading}
                 />
               </div>
 
@@ -379,7 +387,7 @@ function AppContent() {
                   currentPage={currentPage}
                   loading={loading}
                   error={error}
-                  searchKeyword={keyword}
+                  searchKeyword={filters.keyword}
                   sortBy={sortBy}
                   onPageChange={handlePageChange}
                   onSortChange={handleSortChange}

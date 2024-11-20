@@ -43,3 +43,17 @@ export interface SearchResults {
 }
 
 export type SortOption = 'followers' | 'repositories' | 'stars' | '';
+
+export interface SearchFilters {
+  keyword: string;
+  location: string;
+  language: string;
+  topics: string[];
+}
+
+export interface SearchBarProps {
+  filters: SearchFilters;
+  onFiltersChange: (filters: SearchFilters) => void;
+  onSearch: () => void;
+  loading?: boolean;
+}
