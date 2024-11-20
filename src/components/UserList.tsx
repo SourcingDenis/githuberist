@@ -1,7 +1,7 @@
 import React from 'react';
 import { GitHubUser } from '../types/github';
 import { useTheme } from '../contexts/ThemeContext';
-import { MapPin, Link as LinkIcon, Twitter, Users, Building, Code, Star, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
+import { MapPin, Link as LinkIcon, Twitter, Users, Building, Code, Star, ChevronLeft, ChevronRight, ChevronDown, Linkedin } from 'lucide-react';
 import { Card, CardHeader, CardContent, CardFooter } from './ui/card';
 import { Badge } from './ui/badge';
 import {
@@ -136,7 +136,7 @@ function UserList({
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-4">
         {[...Array(6)].map((_, i) => (
           <div 
             key={i} 
@@ -211,129 +211,147 @@ function UserList({
         </Select>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="space-y-4">
         {users.map((user) => (
           <Card 
             key={user.id} 
-            className={`w-full transition-all duration-300 hover:scale-[1.02] hover:shadow-lg relative ${
+            className={`w-full transition-all duration-300 hover:scale-[1.01] hover:shadow-lg ${
               theme === 'dark' 
                 ? 'bg-gray-900/50 border-gray-800 hover:bg-gray-800/70' 
                 : 'bg-white border-gray-100 hover:bg-gray-50'
             }`}
           >
-            {user.most_used_language && (
-              <div className="absolute top-4 right-4 z-10">
-                <LanguageBadge language={user.most_used_language} />
-              </div>
-            )}
-
-            <CardHeader className="flex flex-row items-center gap-4">
-              <a 
-                href={user.html_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="relative group"
-              >
-                <img 
-                  src={user.avatar_url} 
-                  alt={`${user.login}'s avatar`}
-                  className="w-16 h-16 rounded-full ring-2 ring-offset-2 ring-offset-background transition-transform duration-300 group-hover:scale-105
-                    ${theme === 'dark' ? 'ring-gray-700' : 'ring-gray-200'}"
-                />
-              </a>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <a
-                    href={user.html_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`text-lg font-semibold hover:underline ${
-                      theme === 'dark' ? 'text-white' : 'text-gray-900'
-                    }`}
-                  >
-                    {user.name || user.login}
-                  </a>
-                </div>
-                <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                  @{user.login}
-                </span>
-              </div>
-            </CardHeader>
-
-            <CardContent className="space-y-4">
-              {user.bio && (
-                <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                  {user.bio}
-                </p>
-              )}
-
-              <div className="flex flex-wrap items-center gap-4">
-                {user.location && (
-                  <span className={`flex items-center gap-1.5 text-sm ${
-                    theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                  }`}>
-                    <MapPin className="w-4 h-4" />
-                    {user.location}
-                  </span>
-                )}
-                {user.company && (
-                  <span className={`flex items-center gap-1.5 text-sm ${
-                    theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                  }`}>
-                    <Building className="w-4 h-4" />
-                    {user.company}
-                  </span>
-                )}
+            <div className="flex items-start p-6 gap-6">
+              {/* Avatar Section */}
+              <div className="flex-shrink-0">
+                <a 
+                  href={user.html_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block relative group"
+                >
+                  <img 
+                    src={user.avatar_url} 
+                    alt={`${user.login}'s avatar`}
+                    className={`w-20 h-20 rounded-full ring-2 ring-offset-2 ring-offset-background transition-transform duration-300 group-hover:scale-105
+                      ${theme === 'dark' ? 'ring-gray-700' : 'ring-gray-200'}`}
+                  />
+                </a>
               </div>
 
-              <div className="flex gap-6">
-                <div className={`flex items-center gap-2 ${
-                  theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                }`}>
-                  <Users className="w-5 h-5" />
-                  <div className="flex flex-col">
-                    <span className="text-lg font-semibold">{formatNumber(user.followers)}</span>
-                    <span className="text-xs">followers</span>
+              {/* Main Content Section */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <a
+                        href={user.html_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`text-xl font-semibold hover:underline ${
+                          theme === 'dark' ? 'text-white' : 'text-gray-900'
+                        }`}
+                      >
+                        {user.name || user.login}
+                      </a>
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                        @{user.login}
+                      </span>
+                    </div>
+
+                    {user.bio && (
+                      <p className={`text-sm leading-relaxed mb-3 ${
+                        theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                      }`}>
+                        {user.bio}
+                      </p>
+                    )}
                   </div>
+
+                  {user.most_used_language && (
+                    <div className="flex-shrink-0">
+                      <LanguageBadge language={user.most_used_language} />
+                    </div>
+                  )}
                 </div>
-                {user.public_repos > 0 && (
+
+                {/* Stats Section */}
+                <div className="flex flex-wrap gap-6 mb-4">
                   <div className={`flex items-center gap-2 ${
                     theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
                   }`}>
-                    <Star className="w-5 h-5" />
+                    <Users className="w-5 h-5" />
                     <div className="flex flex-col">
-                      <span className="text-lg font-semibold">{formatNumber(user.public_repos)}</span>
-                      <span className="text-xs">repositories</span>
+                      <span className="text-lg font-semibold">{formatNumber(user.followers)}</span>
+                      <span className="text-xs">followers</span>
                     </div>
                   </div>
-                )}
-              </div>
-            </CardContent>
 
-            <CardFooter className="flex gap-4 pt-4 border-t border-gray-800">
-              {user.blog && (
-                <a
-                  href={user.blog.startsWith('http') ? user.blog : `https://${user.blog}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-sm font-medium text-blue-500 hover:text-blue-400"
-                >
-                  <LinkIcon className="w-4 h-4" />
-                  Website
-                </a>
-              )}
-              {user.twitter_username && (
-                <a
-                  href={`https://twitter.com/${user.twitter_username}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-sm font-medium text-blue-500 hover:text-blue-400"
-                >
-                  <Twitter className="w-4 h-4" />
-                  @{user.twitter_username}
-                </a>
-              )}
-            </CardFooter>
+                  {user.public_repos > 0 && (
+                    <div className={`flex items-center gap-2 ${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                    }`}>
+                      <Star className="w-5 h-5" />
+                      <div className="flex flex-col">
+                        <span className="text-lg font-semibold">{formatNumber(user.public_repos)}</span>
+                        <span className="text-xs">repositories</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Info Section */}
+                <div className="flex flex-wrap gap-4">
+                  {user.location && (
+                    <span className={`flex items-center gap-1.5 text-sm ${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                    }`}>
+                      <MapPin className="w-4 h-4" />
+                      {user.location}
+                    </span>
+                  )}
+                  {user.company && (
+                    <span className={`flex items-center gap-1.5 text-sm ${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                    }`}>
+                      <Building className="w-4 h-4" />
+                      {user.company}
+                    </span>
+                  )}
+                  {user.blog && (
+                    <a
+                      href={user.blog.startsWith('http') ? user.blog : `https://${user.blog}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 text-sm font-medium text-blue-500 hover:text-blue-400"
+                    >
+                      {user.blog.toLowerCase().includes('linkedin.com') ? (
+                        <>
+                          <Linkedin className="w-4 h-4" />
+                          LinkedIn
+                        </>
+                      ) : (
+                        <>
+                          <LinkIcon className="w-4 h-4" />
+                          Website
+                        </>
+                      )}
+                    </a>
+                  )}
+                  {user.twitter_username && (
+                    <a
+                      href={`https://twitter.com/${user.twitter_username}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 text-sm font-medium text-blue-500 hover:text-blue-400"
+                    >
+                      <Twitter className="w-4 h-4" />
+                      @{user.twitter_username}
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
           </Card>
         ))}
       </div>
