@@ -1,7 +1,7 @@
 import React from 'react';
 import { GitHubUser } from '../types/github';
 import { useTheme } from '../contexts/ThemeContext';
-import { MapPin, Link as LinkIcon, Twitter, Users, Building, Code, Star, ChevronLeft, ChevronRight, ChevronDown, Linkedin } from 'lucide-react';
+import { MapPin, Link as LinkIcon, Twitter, Users, Building, Star, ChevronLeft, ChevronRight, Linkedin } from 'lucide-react';
 import { Card, CardHeader, CardContent, CardFooter } from './ui/card';
 import { Badge } from './ui/badge';
 import {

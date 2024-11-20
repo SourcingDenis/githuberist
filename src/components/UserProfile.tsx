@@ -23,7 +23,7 @@ function highlightText(text: string, keyword: string) {
   );
 }
 
-export default function UserProfile({ user, searchKeyword }: UserProfileProps) {
+const UserProfile = ({ user, searchKeyword }: UserProfileProps) => {
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
@@ -120,4 +120,6 @@ export default function UserProfile({ user, searchKeyword }: UserProfileProps) {
       </div>
     </div>
   );
-}
+};
+
+export default UserProfile;

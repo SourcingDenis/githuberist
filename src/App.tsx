@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Github, Heart } from 'lucide-react';
 import SearchBar from './components/SearchBar';
 import UserList from './components/UserList';
@@ -9,7 +9,6 @@ import { Octokit } from '@octokit/rest';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { motion } from 'framer-motion';
 
-type RepoLanguage = string | null;
 type LanguageCount = { [key: string]: number };
 
 const stats = [
@@ -20,7 +19,7 @@ const stats = [
 
 function AppContent() {
   const { theme } = useTheme();
-  const { isAuthenticated, login, accessToken, error: authError } = useAuth();
+  const { isAuthenticated, login, accessToken } = useAuth();
   const [keyword, setKeyword] = useState('');
   const [location, setLocation] = useState('');
   const [users, setUsers] = useState<GitHubUser[]>([]);
@@ -29,7 +28,6 @@ function AppContent() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('');
-  const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [language, setLanguage] = useState('');
 
   // Redirect user to the home screen after logging in
