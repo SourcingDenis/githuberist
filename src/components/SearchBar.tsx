@@ -191,7 +191,15 @@ export default function SearchBar({ filters, onFiltersChange, onSearch, loading 
                   <Hash className="w-4 h-4" />
                   <input
                     type="text"
-                    placeholder="Add topics..."
+                    value={filters.topics.join(', ')}
+                    onChange={(e) => {
+                      const topicsArray = e.target.value
+                        .split(',')
+                        .map(topic => topic.trim())
+                        .filter(topic => topic.length > 0);
+                      handleFilterChange('topics', topicsArray);
+                    }}
+                    placeholder="Add topics (comma-separated)..."
                     className={`bg-transparent border-none focus:outline-none ${
                       theme === 'dark' ? 'text-white' : 'text-black'
                     }`}

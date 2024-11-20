@@ -33,8 +33,6 @@ function AppContent() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('');
-  const [selectedUser, setSelectedUser] = useState<string | null>(null);
-  const [language, setLanguage] = useState('');
 
   // Redirect user to the home screen after logging in
   useEffect(() => {
@@ -211,37 +209,6 @@ function AppContent() {
     searchUsers(page);
   };
 
-  // Add individual search handlers for each filter
-  const handleKeywordSearch = (newKeyword: string) => {
-    setFilters({
-      ...filters,
-      keyword: newKeyword,
-    });
-    if (newKeyword.trim() || filters.location.trim() || filters.language) {
-      searchUsers(1);
-    }
-  };
-
-  const handleLocationSearch = (newLocation: string) => {
-    setFilters({
-      ...filters,
-      location: newLocation,
-    });
-    if (filters.keyword.trim() || newLocation.trim() || filters.language) {
-      searchUsers(1);
-    }
-  };
-
-  const handleLanguageSearch = (newLanguage: string) => {
-    setFilters({
-      ...filters,
-      language: newLanguage,
-    });
-    if (filters.keyword.trim() || filters.location.trim() || newLanguage) {
-      searchUsers(1);
-    }
-  };
-
   return (
     <div className={`min-h-screen flex flex-col ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
       <div className="container mx-auto px-4 py-8 flex-grow max-w-7xl">
@@ -251,7 +218,7 @@ function AppContent() {
 
         <div className="flex flex-col items-center">
           {!isAuthenticated ? (
-            // Show hero section only for non-authenticated users
+            // Hero section for non-authenticated users
             <div className="text-center relative mb-12 w-full max-w-4xl mx-auto">
               <div className="absolute inset-0 -z-10 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-3xl animate-pulse-slow rounded-full" />
               
@@ -346,7 +313,7 @@ function AppContent() {
               </div>
             </div>
           ) : (
-            // Show search interface for authenticated users
+            // Authenticated user section
             <>
               <div className="text-center mb-8">
                 <div className="flex items-center justify-center space-x-3 mb-4 group">

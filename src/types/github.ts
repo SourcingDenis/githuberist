@@ -50,10 +50,3 @@ export interface SearchFilters {
   language: string;
   topics: string[];
 }
-
-export interface SearchBarProps {
-  filters: SearchFilters;
-  onFiltersChange: (filters: SearchFilters) => void;
-  onSearch: () => void;
-  loading?: boolean;
-}
