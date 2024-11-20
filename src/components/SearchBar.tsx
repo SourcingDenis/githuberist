@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useCallback, useEffect } from 'react';
+import React, { ChangeEvent, useCallback } from 'react';
 import { Search, MapPin, Code, ChevronDown } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import debounce from 'lodash/debounce';
@@ -11,7 +11,7 @@ interface SearchBarProps {
   setKeyword: (value: string) => void;
   setLocation: (value: string) => void;
   setLanguage: (value: string) => void;
-  onSearch: () => void;
+  onSearch?: () => void;
 }
 
 const PROGRAMMING_LANGUAGES = [
@@ -35,28 +35,17 @@ function SearchBar({
   language,
   setKeyword, 
   setLocation,
-  setLanguage, 
+  setLanguage,
   onSearch 
 }: SearchBarProps) {
   const { theme } = useTheme();
 
   const debouncedSearch = useCallback(
     debounce(() => {
-      onSearch();
+      onSearch?.();
     }, 500),
     [onSearch]
   );
-
-  useEffect(() => {
-    return () => {
-      debouncedSearch.cancel();
-    };
-  }, [debouncedSearch]);
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    onSearch();
-  };
 
   const handleKeywordChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -74,6 +63,11 @@ function SearchBar({
     const value = e.target.value;
     setLanguage(value);
     debouncedSearch();
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    onSearch?.();
   };
 
   return (
